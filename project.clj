@@ -1,6 +1,6 @@
-(defproject play-clj "1.2.0-SNAPSHOT"
+(defproject play-clj "1.2.0-alpha"
   :description "A libGDX wrapper for easy cross-platform game development"
-  :url "https://github.com/oakes/play-clj"
+  :url "https://github.com/Arkoniak/play-clj"
   :license {:name "Public Domain"
             :url "http://unlicense.org/UNLICENSE"}
   :dependencies [[com.badlogicgames.gdx/gdx "1.9.3"]
