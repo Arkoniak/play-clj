@@ -72,25 +72,25 @@
              [(:total-time screen) entities]))))
 
 (defn defscreen*
-  [screen entities
+  [screen game-db
    {:keys [on-show on-render on-hide on-pause on-resize on-resume on-timer]
     :as options}]
   (let [execute-fn! (fn [func & {:keys [] :as options}]
                       (when func
                         (let [screen-map (merge @screen options)
-                              old-entities @entities]
+                              old-game-db @game-db]
                           (some->> (with-meta
-                                     #(normalize (func screen-map old-entities))
+                                     (func screen-map old-game-db)
                                      (meta func))
                                    (wrapper screen)
-                                   (reset-changed! entities old-entities)
-                                   (update-screen! @screen)))))
+                                   (reset-changed! game-db old-game-db)
+                                   #_(update-screen! @screen)))))
         execute-fn-on-gl! (fn [& args]
                             (on-gl (apply execute-fn! args)))
         update-fn! (fn [func & args]
                      (apply swap! screen func args))]
     {:screen screen
-     :entities entities
+     :game-db game-db
      :execute-fn! execute-fn!
      :execute-fn-on-gl! execute-fn-on-gl!
      :update-fn! update-fn!
@@ -485,10 +485,10 @@ keywords and functions in pairs."
          map-sym# (symbol (str '~n "-map"))
          screen# (deref (or (resolve map-sym#)
                             (intern *ns* map-sym# (atom {}))))
-         entities-sym# (symbol (str '~n "-entities"))
-         entities# (deref (or (resolve entities-sym#)
-                              (intern *ns* entities-sym# (atom []))))]
-     (def ~n (defscreen* screen# entities# fn-syms#))))
+         game-db-sym# (symbol (str '~n "-game-db"))
+         game-db# (deref (or (resolve game-db-sym#)
+                              (intern *ns* game-db-sym# (atom {}))))]
+     (def ~n (defscreen* screen# game-db# fn-syms#))))
 
 (defn defgame*
   [{:keys [on-create]}]
@@ -500,7 +500,10 @@ keywords and functions in pairs."
 (defmacro defgame
   "Defines a game. This should only be called once."
   [n & {:keys [] :as options}]
-  `(defonce ~n (defgame* ~options)))
+  `(let [game-db-sym# (symbol (str '~n "-game-db"))
+         game-db# (deref (or (resolve game-db-sym#)
+                             (intern *ns* game-db-sym# (atom {}))))]
+    defonce ~n (defgame* game-db# ~options)))
 
 (defn set-screen!
   "Creates and displays a screen for the `game-object`, using one or more
