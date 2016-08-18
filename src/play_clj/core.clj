@@ -500,10 +500,7 @@ keywords and functions in pairs."
 (defmacro defgame
   "Defines a game. This should only be called once."
   [n & {:keys [] :as options}]
-  `(let [game-db-sym# (symbol (str '~n "-game-db"))
-         game-db# (deref (or (resolve game-db-sym#)
-                             (intern *ns* game-db-sym# (atom {}))))]
-    defonce ~n (defgame* game-db# ~options)))
+  `(defonce ~n (defgame* ~options)))
 
 (defn set-screen!
   "Creates and displays a screen for the `game-object`, using one or more
