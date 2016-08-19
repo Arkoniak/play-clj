@@ -73,15 +73,16 @@
 
 (defn defscreen*
   [screen game-db
-   {:keys [on-show on-render on-hide on-pause on-resize on-resume on-timer]
+   {:keys [on-show on-frame on-render on-hide on-pause on-resize on-resume on-timer]
     :as options}]
   (let [execute-fn! (fn [func & {:keys [] :as options}]
                       (when func
                         (let [screen-map (merge @screen options)
                               old-game-db @game-db]
-                          (some->> (with-meta
+                          (some->> #_(with-meta
                                      (func screen-map old-game-db)
                                      (meta func))
+                                   (partial func screen-map old-game-db)
                                    (wrapper screen)
                                    (reset-changed! game-db old-game-db)
                                    #_(update-screen! @screen)))))
@@ -117,7 +118,8 @@
                       update-screen!))
      :render (fn [d]
                (swap! screen update-in [:total-time] #(+ (or %1 0) %2) d)
-               (some->> (execute-fn! on-render :delta-time d)
+               (execute-fn! on-frame :delta-time d)
+               (some->> (execute-fn! on-render)
                         (add-to-timeline! screen)))
      :hide #(execute-fn! on-hide)
      :pause #(execute-fn! on-pause)
